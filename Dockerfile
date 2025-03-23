@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-alpine as build
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /workspace/app
 
 # Copy maven executable and pom.xml
@@ -34,4 +34,4 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+OptimizeStringConcat -XX:+UseStringDeduplication -Djava.security.egd=file:/dev/./urandom"
 
 # Run the application
-ENTRYPOINT ["java", "-cp", "app:app/lib/*", "com.example.orderprocessor.OrderProcessorApplication"]
+ENTRYPOINT ["java", "-cp", "app:app/lib/*", "dev.demo.order.async.processor.OrderAsyncProcessorApplication"]
