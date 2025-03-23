@@ -29,7 +29,7 @@
             <column name="status" type="varchar(20)">
                 <constraints nullable="false"/>
             </column>
-            <column name="metadata" type="jsonb"/>
+            <column name="metadata" type="text"/>
             <column name="version" type="bigint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
@@ -82,7 +82,7 @@
             </column>
             <column name="due_date" type="timestamp"/>
             <column name="description" type="text"/>
-            <column name="metadata" type="jsonb"/>
+            <column name="metadata" type="text"/>
             <column name="version" type="bigint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
@@ -147,7 +147,7 @@
             <column name="updated_at" type="timestamp"/>
             <column name="duration_ms" type="bigint"/>
             <column name="source_ip" type="varchar(50)"/>
-            <column name="metadata" type="jsonb"/>
+            <column name="metadata" type="text"/>
         </createTable>
 
         <createIndex indexName="idx_order_actions_order_id" tableName="order_actions">
@@ -199,7 +199,7 @@
             </column>
             <column name="updated_at" type="timestamp"/>
             <column name="description" type="text"/>
-            <column name="metadata" type="jsonb"/>
+            <column name="metadata" type="text"/>
         </createTable>
 
         <createIndex indexName="idx_order_documents_order_id" tableName="order_documents">
@@ -259,7 +259,7 @@
             <column name="updated_at" type="timestamp"/>
             <column name="error_message" type="text"/>
             <column name="external_reference" type="varchar(255)"/>
-            <column name="metadata" type="jsonb"/>
+            <column name="metadata" type="text"/>
         </createTable>
 
         <createIndex indexName="idx_order_communications_order_id" tableName="order_communications">
