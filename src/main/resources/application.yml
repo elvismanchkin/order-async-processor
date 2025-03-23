@@ -42,17 +42,35 @@ server:
 
 # Management & Metrics
 management:
-  server:
-    port: 8081
+#  server:
+#    port: 8081
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics,loggers
+        include: '*'
+      base-path: /
+      path-mapping:
+        metrics: /default-metrics
+        prometheus: /metrics
   endpoint:
+    prometheus:
+      access: unrestricted
     health:
       show-details: always
       probes:
         enabled: true
+      access: unrestricted
+      group:
+        liveness:
+          include: livenessState
+          additional-path: "server:/livez"
+          show-components: always
+          show-details: always
+        readiness:
+          include: readinessState, diskSpace
+          additional-path: "server:/readyz"
+          show-components: always
+          show-details: always
   health:
     defaults:
       enabled: true
@@ -66,6 +84,18 @@ management:
     distribution:
       slo:
         http.server.requests: 500ms, 1s
+        http.server.requests.active: 500ms, 1s
+        http.server.requests.max: 500ms, 1s
+        http.server.errors: 500ms, 1s
+        http.client.requests: 500ms, 1s
+        http.client.requests.active: 500ms, 1s
+        webclient.request: 500ms, 1s
+        webclient.response: 500ms, 1s
+        webclient.error: 500ms, 1s
+        webclient.request.time: 500ms, 1s
+        order.processing.time: 500ms, 1s
+        order.processing.due-interval: 500ms, 1s
+        order.processing.interval: 500ms, 1s
       percentiles-histogram:
         http.server.requests: true
         order.processing.time: true

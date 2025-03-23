@@ -8,7 +8,7 @@
     <changeSet id="001" author="developer">
         <comment>Create customers table</comment>
         <createTable tableName="customers">
-            <column name="id" type="uuid">
+            <column name="id" type="uuid" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="external_id" type="varchar(50)"/>
@@ -54,7 +54,7 @@
     <changeSet id="002" author="developer">
         <comment>Create orders table</comment>
         <createTable tableName="orders">
-            <column name="id" type="uuid">
+            <column name="id" type="uuid" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="reference_number" type="varchar(50)">
@@ -121,7 +121,7 @@
     <changeSet id="003" author="developer">
         <comment>Create order_actions table</comment>
         <createTable tableName="order_actions">
-            <column name="id" type="uuid">
+            <column name="id" type="uuid" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="order_id" type="uuid">
@@ -166,7 +166,7 @@
     <changeSet id="004" author="developer">
         <comment>Create order_documents table</comment>
         <createTable tableName="order_documents">
-            <column name="id" type="uuid">
+            <column name="id" type="uuid" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="order_id" type="uuid">
@@ -218,7 +218,7 @@
     <changeSet id="005" author="developer">
         <comment>Create order_communications table</comment>
         <createTable tableName="order_communications">
-            <column name="id" type="uuid">
+            <column name="id" type="uuid" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="order_id" type="uuid">

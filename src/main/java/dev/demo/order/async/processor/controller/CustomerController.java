@@ -33,6 +33,12 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
+    @GetMapping("/all")
+    @Observed(name = "api.customer.find.all", contextualName = "apiFindAllCustomers")
+    public Flux<Customer> findAllCustomers() {
+        return customerService.findAllCustomers();
+    }
+
     /**
      * Get a customer by ID
      */

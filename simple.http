@@ -1,0 +1,36 @@
+POST http://localhost:8080/api/customers
+Content-Type: application/json
+
+{
+  "externalId": "{{$random.uuid}},",
+  "taxId": "{{$random.integer()}},",
+  "name": "{{$random.name.firstName}}",
+  "email": "{{$random.email}}",
+  "phone": "{{$random.phone}}",
+  "segment": "VIP",
+  "createdAt": "{{$isoTimestamp}}",
+  "updatedAt": "{{$isoTimestamp}}",
+  "accountManager": "{{$random.name.firstName}} {{$random.name.lastName}}",
+  "status": "ACTIVE",
+  "metadata": "{\"key\": \"value\"}",
+  "deleted": false
+}
+
+###
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "referenceNumber": "{{$random.uuid}}",
+  "type": "PENDING",
+  "status": "PENDING",
+  "customerId": "7c8314a4-58b1-4b1d-b528-ebbc61cb7ee9",
+  "createdBy": "{{$random.name.firstName}} {{$random.name.lastName}}",
+  "createdAt": "{{$isoTimestamp}}",
+  "updatedBy": "{{$random.name.firstName}} {{$random.name.lastName}}",
+  "updatedAt": "{{$isoTimestamp}}",
+  "priority": 3,
+  "dueDate": "{{$isoTimestamp}}",
+  "description": "{{$random.lorem.paragraph}}",
+  "metadata": "{\"key\": \"value\"}"
+}

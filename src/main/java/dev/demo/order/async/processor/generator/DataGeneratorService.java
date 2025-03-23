@@ -10,14 +10,18 @@ import dev.demo.order.async.processor.repository.model.Order;
 import dev.demo.order.async.processor.repository.model.OrderCommunication;
 import dev.demo.order.async.processor.repository.model.OrderDocument;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -31,6 +35,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Getter
 public class DataGeneratorService {
 
     private final CustomerRepository customerRepository;
@@ -42,6 +47,7 @@ public class DataGeneratorService {
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
+    @Getter
     @Value("${data.generator.batch-size:5}")
     private int batchSize;
 
@@ -57,7 +63,6 @@ public class DataGeneratorService {
      */
     public Mono<Customer> generateCustomer() {
         Customer customer = new Customer();
-        customer.setId(UUID.randomUUID());
         customer.setExternalId("EXT-" + faker.number().numberBetween(1000, 9999));
         customer.setTaxId(faker.number().digits(10));
         customer.setName(faker.company().name());
@@ -67,7 +72,6 @@ public class DataGeneratorService {
         customer.setCreatedAt(LocalDateTime.now());
         customer.setStatus("ACTIVE");
         customer.setAccountManager(faker.name().fullName());
-        customer.setVersion(0L);
         customer.setDeleted(false);
 
         log.debug("Generated customer: {}", customer.getName());
@@ -81,7 +85,6 @@ public class DataGeneratorService {
      */
     public Mono<Order> generateOrder(Customer customer) {
         Order order = new Order();
-        order.setId(UUID.randomUUID());
         order.setReferenceNumber("ORD-" + faker.number().digits(5));
         order.setType(getRandomItem(ORDER_TYPES));
         order.setStatus(getRandomWeightedOrderStatus());
@@ -91,13 +94,12 @@ public class DataGeneratorService {
         order.setPriority(random.nextInt(20));
         order.setDueDate(LocalDateTime.now().plusDays(random.nextInt(14) + 1));
         order.setDescription(faker.lorem().paragraph());
-        order.setVersion(0L);
         order.setDeleted(false);
 
         log.debug("Generated order: {} for customer: {}", order.getReferenceNumber(), customer.getName());
         meterRegistry.counter("data.generator.order").increment();
 
-        return orderRepository.save(order);
+        return withRetry(orderRepository.save(order), "order creation");
     }
 
     /**
@@ -105,7 +107,6 @@ public class DataGeneratorService {
      */
     public Mono<OrderDocument> generateDocument(Order order) {
         OrderDocument document = new OrderDocument();
-        document.setId(UUID.randomUUID());
         document.setOrderId(order.getId());
         document.setType(getRandomItem(DOCUMENT_TYPES));
         document.setName(faker.file().fileName());
@@ -115,8 +116,8 @@ public class DataGeneratorService {
         document.setAmount(BigDecimal.valueOf(random.nextDouble() * 10000));
         document.setCurrency("USD");
         document.setStatus(getRandomItem(Arrays.asList("PENDING", "VERIFIED", "REJECTED")));
-        document.setStoragePath("/storage/documents/" + document.getId());
-        document.setStorageId(document.getId().toString());
+        document.setStoragePath("/storage/documents/");
+        document.setStorageId(UUID.randomUUID().toString());
         document.setMimeType("application/pdf");
         document.setSizeBytes((long)random.nextInt(1000000) + 1000);
         document.setUploadedBy(faker.name().username());
@@ -126,7 +127,7 @@ public class DataGeneratorService {
         log.debug("Generated document: {} for order: {}", document.getName(), order.getReferenceNumber());
         meterRegistry.counter("data.generator.document").increment();
 
-        return documentRepository.save(document);
+        return withRetry(documentRepository.save(document), "document creation");
     }
 
     /**
@@ -134,7 +135,6 @@ public class DataGeneratorService {
      */
     public Mono<OrderCommunication> generateCommunication(Order order, Customer customer) {
         OrderCommunication communication = new OrderCommunication();
-        communication.setId(UUID.randomUUID());
         communication.setOrderId(order.getId());
         communication.setCustomerId(customer.getId());
         communication.setChannel(getRandomItem(COMMUNICATION_CHANNELS));
@@ -161,7 +161,31 @@ public class DataGeneratorService {
         log.debug("Generated communication for order: {}", order.getReferenceNumber());
         meterRegistry.counter("data.generator.communication").increment();
 
-        return communicationRepository.save(communication);
+        return withRetry(communicationRepository.save(communication), "communication creation");
+    }
+
+    private <T> Mono<T> withRetry(Mono<T> operation, String operationName) {
+        return operation
+                .retryWhen(Retry.backoff(3, Duration.ofMillis(100))
+                        .filter(throwable -> throwable instanceof OptimisticLockingFailureException)
+                        .doBeforeRetry(retrySignal -> log.debug("Retrying {} after optimistic locking failure, attempt: {}",
+                                operationName, retrySignal.totalRetries() + 1)))
+                .onErrorResume(OptimisticLockingFailureException.class, e -> {
+                    log.warn("Failed to execute {} after retries due to optimistic locking", operationName);
+                    return Mono.empty();
+                });
+    }
+
+    public Mono<Customer> generateCustomerWithRetry(int maxRetries) {
+        return Mono.defer(() -> generateCustomer())
+                .retryWhen(Retry.backoff(maxRetries, Duration.ofMillis(100))
+                        .filter(throwable -> throwable instanceof OptimisticLockingFailureException)
+                        .doBeforeRetry(retrySignal -> log.debug("Retrying customer creation after optimistic locking failure, attempt: {}",
+                                retrySignal.totalRetries() + 1)))
+                .onErrorResume(OptimisticLockingFailureException.class, e -> {
+                    log.warn("Failed to create customer after {} retries due to optimistic locking", maxRetries);
+                    return Mono.empty();
+                });
     }
 
     /**

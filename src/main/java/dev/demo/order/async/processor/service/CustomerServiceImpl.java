@@ -95,4 +95,9 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.findBySegmentAndStatusAndDeletedFalse(segment, "ACTIVE")
                 .doOnComplete(() -> log.debug("Found customers for segment: {}", segment));
     }
+
+    @Override
+    public Flux<Customer> findAllCustomers() {
+        return customerRepository.findAll();
+    }
 }

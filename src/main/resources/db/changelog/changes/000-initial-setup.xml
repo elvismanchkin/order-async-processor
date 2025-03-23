@@ -5,9 +5,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
-    <!-- Include all the changelog files -->
-    <include file="db/changelog/changes/000-initial-setup.xml"/>
-    <include file="db/changelog/changes/001-initial-schema.xml"/>
-    <include file="db/changelog/changes/002-test-data.xml"/>
-
+    <changeSet id="000" author="developer" dbms="postgresql">
+        <comment>Create UUID v4 generation function</comment>
+        <sql>
+            CREATE
+            EXTENSION IF NOT EXISTS "uuid-ossp";
+        </sql>
+    </changeSet>
 </databaseChangeLog>

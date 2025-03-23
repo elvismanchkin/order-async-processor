@@ -63,4 +63,6 @@ public interface CustomerService {
      * @return Customers in the segment
      */
     Flux<Customer> findCustomersBySegment(String segment);
+
+    Flux<Customer> findAllCustomers();
 }

@@ -62,6 +62,7 @@ public class Customer {
     @Column("metadata")
     private String metadata;
 
+    // Ensure version is always incremented when saving
     @Version
     private Long version;
 
