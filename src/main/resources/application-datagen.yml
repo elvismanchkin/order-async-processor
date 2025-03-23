@@ -1,0 +1,20 @@
+# Data Generator Configuration
+data:
+  generator:
+    enabled: true
+    batch-size: 5
+    interval: 15000  # 15 seconds
+
+# Set more frequent processing intervals when using the data generator
+order:
+  processing:
+    interval: 10000  # 10 seconds
+    batch-size: 50
+
+document:
+  processing:
+    interval: 15000  # 15 seconds
+
+communication:
+  processing:
+    interval: 12000  # 12 seconds

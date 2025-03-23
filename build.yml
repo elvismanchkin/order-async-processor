@@ -1,0 +1,83 @@
+name: Order Processor CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and Test
+        run: ./mvnw clean verify
+
+      - name: Run Integration Tests
+        run: ./mvnw verify -P integration-test
+
+      - name: Analyze with SonarCloud
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./mvnw -B verify sonar:sonar -Dsonar.projectKey=order-processor -Dsonar.organization=your-organization
+
+      - name: Build Docker image
+        if: github.event_name == 'push'
+        run: |
+          ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=order-processor:${{ github.sha }}
+
+      - name: Login to Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Docker image
+        if: github.event_name == 'push'
+        run: |
+          docker tag order-processor:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/order-processor:${{ github.sha }}
+          docker tag order-processor:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/order-processor:latest
+          docker push ghcr.io/${{ github.repository_owner }}/order-processor:${{ github.sha }}
+          docker push ghcr.io/${{ github.repository_owner }}/order-processor:latest
+
+  deploy-dev:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Deploy to Development
+        run: |
+          echo "Deploying to development environment..."
+          # Add deployment steps here (e.g., kubectl apply, Helm upgrade, etc.)
+          # For example with Kubernetes:
+          # kubectl set image deployment/order-processor order-processor=ghcr.io/${{ github.repository_owner }}/order-processor:${{ github.sha }}
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.example.com
+
+    steps:
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to production environment..."
+          # Add production deployment steps here

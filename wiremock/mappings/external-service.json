@@ -1,0 +1,54 @@
+[
+    {
+        "request": {
+            "method": "POST",
+            "url": "/api/orders/validate"
+        },
+        "response": {
+            "status": 200,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "jsonBody": true,
+            "transformers": [
+                "response-template"
+            ]
+        }
+    },
+    {
+        "request": {
+            "method": "POST",
+            "url": "/api/orders/process"
+        },
+        "response": {
+            "status": 200,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "bodyFileName": "order-response.json",
+            "transformers": [
+                "response-template"
+            ]
+        }
+    },
+    {
+        "request": {
+            "method": "POST",
+            "url": "/api/orders/notify"
+        },
+        "response": {
+            "status": 200,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "jsonBody": {
+                "notificationId": "{{randomValue type='UUID'}}",
+                "status": "SENT",
+                "message": "Notification sent successfully"
+            },
+            "transformers": [
+                "response-template"
+            ]
+        }
+    }
+]

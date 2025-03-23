@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="001" author="developer">
+        <comment>Create customers table</comment>
+        <createTable tableName="customers">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="external_id" type="varchar(50)"/>
+            <column name="tax_id" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)"/>
+            <column name="phone" type="varchar(50)"/>
+            <column name="segment" type="varchar(50)"/>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp"/>
+            <column name="account_manager" type="varchar(100)"/>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="metadata" type="jsonb"/>
+            <column name="version" type="bigint" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_customers_external_id" tableName="customers">
+            <column name="external_id"/>
+            <where>deleted = false</where>
+        </createIndex>
+
+        <createIndex indexName="idx_customers_tax_id" tableName="customers">
+            <column name="tax_id"/>
+            <where>deleted = false</where>
+        </createIndex>
+
+        <createIndex indexName="idx_customers_status" tableName="customers">
+            <column name="status"/>
+            <where>deleted = false</where>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="002" author="developer">
+        <comment>Create orders table</comment>
+        <createTable tableName="orders">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reference_number" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="customer_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_orders_customer" references="customers(id)"/>
+            </column>
+            <column name="created_by" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="varchar(100)"/>
+            <column name="updated_at" type="timestamp"/>
+            <column name="priority" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="due_date" type="timestamp"/>
+            <column name="description" type="text"/>
+            <column name="metadata" type="jsonb"/>
+            <column name="version" type="bigint" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_orders_status" tableName="orders">
+            <column name="status"/>
+            <where>deleted = false</where>
+        </createIndex>
+
+        <createIndex indexName="idx_orders_customer_id" tableName="orders">
+            <column name="customer_id"/>
+            <where>deleted = false</where>
+        </createIndex>
+
+        <createIndex indexName="idx_orders_created_at" tableName="orders">
+            <column name="created_at"/>
+            <where>deleted = false</where>
+        </createIndex>
+
+        <createIndex indexName="idx_orders_due_date" tableName="orders">
+            <column name="due_date"/>
+            <where>deleted = false</where>
+        </createIndex>
+
+        <createIndex indexName="idx_orders_type_status" tableName="orders">
+            <column name="type"/>
+            <column name="status"/>
+            <where>deleted = false</where>
+        </createIndex>
+
+        <createIndex indexName="idx_orders_priority_created" tableName="orders">
+            <column name="priority" descending="true"/>
+            <column name="created_at"/>
+            <where>deleted = false</where>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="003" author="developer">
+        <comment>Create order_actions table</comment>
+        <createTable tableName="order_actions">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_actions_order" references="orders(id)"
+                             deleteCascade="true"/>
+            </column>
+            <column name="type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="performed_by" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="performed_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="result" type="text"/>
+            <column name="error_code" type="varchar(20)"/>
+            <column name="error_message" type="text"/>
+            <column name="updated_at" type="timestamp"/>
+            <column name="duration_ms" type="bigint"/>
+            <column name="source_ip" type="varchar(50)"/>
+            <column name="metadata" type="jsonb"/>
+        </createTable>
+
+        <createIndex indexName="idx_order_actions_order_id" tableName="order_actions">
+            <column name="order_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_actions_type" tableName="order_actions">
+            <column name="type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_actions_performed_at" tableName="order_actions">
+            <column name="performed_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="004" author="developer">
+        <comment>Create order_documents table</comment>
+        <createTable tableName="order_documents">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_documents_order" references="orders(id)"
+                             deleteCascade="true"/>
+            </column>
+            <column name="type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number" type="varchar(100)"/>
+            <column name="issue_date" type="date"/>
+            <column name="expiry_date" type="date"/>
+            <column name="amount" type="decimal(19,4)"/>
+            <column name="currency" type="varchar(3)"/>
+            <column name="status" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="storage_path" type="varchar(255)"/>
+            <column name="storage_id" type="varchar(255)"/>
+            <column name="mime_type" type="varchar(100)"/>
+            <column name="size_bytes" type="bigint"/>
+            <column name="uploaded_by" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="uploaded_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp"/>
+            <column name="description" type="text"/>
+            <column name="metadata" type="jsonb"/>
+        </createTable>
+
+        <createIndex indexName="idx_order_documents_order_id" tableName="order_documents">
+            <column name="order_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_documents_type" tableName="order_documents">
+            <column name="type"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_documents_status" tableName="order_documents">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005" author="developer">
+        <comment>Create order_communications table</comment>
+        <createTable tableName="order_communications">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_communications_order" references="orders(id)"
+                             deleteCascade="true"/>
+            </column>
+            <column name="customer_id" type="uuid">
+                <constraints nullable="false" foreignKeyName="fk_communications_customer" references="customers(id)"/>
+            </column>
+            <column name="channel" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="direction" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sender" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="recipient" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject" type="varchar(255)"/>
+            <column name="message" type="text"/>
+            <column name="status" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sent_at" type="timestamp"/>
+            <column name="delivered_at" type="timestamp"/>
+            <column name="created_by" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp"/>
+            <column name="error_message" type="text"/>
+            <column name="external_reference" type="varchar(255)"/>
+            <column name="metadata" type="jsonb"/>
+        </createTable>
+
+        <createIndex indexName="idx_order_communications_order_id" tableName="order_communications">
+            <column name="order_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_communications_customer_id" tableName="order_communications">
+            <column name="customer_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_communications_status" tableName="order_communications">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_order_communications_channel_type" tableName="order_communications">
+            <column name="channel"/>
+            <column name="type"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

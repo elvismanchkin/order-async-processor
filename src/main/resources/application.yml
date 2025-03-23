@@ -1,0 +1,144 @@
+spring:
+  application:
+    name: order-async-processor
+  r2dbc:
+    host: localhost
+    port: 5432
+    database: orders_db
+    username: postgres
+    password: postgres
+    pool:
+      initial-size: 50
+      max-size: 200
+      max-idle-time: 30m
+      validation-query: SELECT 1
+  data:
+    r2dbc:
+      repositories:
+        enabled: true
+
+# Server configuration
+server:
+  port: 8080
+  shutdown: graceful
+
+# Management & Metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,loggers
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        order.processing.time: true
+    tags:
+      application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+    propagation:
+      type: w3c
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.example.orderprocessor: INFO
+    io.r2dbc: INFO
+    org.springframework.r2dbc: INFO
+    org.springframework.data.r2dbc: INFO
+    reactor.netty.http.client: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} trace=%X{traceId:-} span=%X{spanId:-} - %msg%n"
+
+# Order Processing Config
+order:
+  processing:
+    enabled: true
+    batch-size: 200
+    concurrency: 20
+    interval: 60000  # 1 minute
+    due-interval: 300000  # 5 minutes
+    max-age: 24h
+    backpressure-timeout: 30s
+    types: STANDARD,PRIORITY,URGENT
+    status:
+      pending: PENDING
+      processing: PROCESSING
+      completed: COMPLETED
+      error: ERROR
+
+# External Services
+service:
+  external:
+    url: http://external-service:8081
+    timeout: 30s
+
+# WebClient Config
+webclient:
+  timeout:
+    connect: 5000
+    read: 30000
+    write: 30000
+  max-connections: 500
+  acquire-timeout: 45000
+
+# Scheduler Config
+scheduler:
+  pool-size: 5
+
+# Resilience4j Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+    instances:
+      externalServiceValidate:
+        baseConfig: default
+      externalServiceProcess:
+        baseConfig: default
+      externalServiceNotify:
+        baseConfig: default
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        waitDuration: 1s
+        retryExceptions:
+          - org.springframework.web.reactive.function.client.WebClientResponseException
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+    instances:
+      externalServiceValidate:
+        baseConfig: default
+      externalServiceProcess:
+        baseConfig: default
+      externalServiceNotify:
+        baseConfig: default
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 30s
+        cancelRunningFuture: true
+    instances:
+      externalServiceValidate:
+        baseConfig: default
+      externalServiceProcess:
+        baseConfig: default
+      externalServiceNotify:
+        baseConfig: default

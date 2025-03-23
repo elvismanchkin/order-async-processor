@@ -1,0 +1,15 @@
+{
+    "id": "{{jsonPath request.body '$.id'}}",
+    "referenceNumber": "{{jsonPath request.body '$.referenceNumber'}}",
+    "type": "{{jsonPath request.body '$.type'}}",
+    "status": "COMPLETED",
+    "customerId": "{{jsonPath request.body '$.customerId'}}",
+    "createdBy": "{{jsonPath request.body '$.createdBy'}}",
+    "createdAt": "{{jsonPath request.body '$.createdAt'}}",
+    "updatedBy": "external-service",
+    "updatedAt": "{{now format='yyyy-MM-dd''T''HH:mm:ss.SSSSSS'}}",
+    "priority": {{jsonPath request.body '$.priority'}},
+"dueDate": "{{jsonPath request.body '$.dueDate'}}",
+"description": "{{jsonPath request.body '$.description'}}",
+"version": {{randomInt lower=1 upper=10}}
+}

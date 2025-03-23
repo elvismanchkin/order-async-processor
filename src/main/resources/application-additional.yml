@@ -1,0 +1,32 @@
+# Document Processing Config
+document:
+  processing:
+    enabled: true
+    batch-size: 50
+    concurrency: 5
+    interval: 120000  # 2 minutes
+    types: INVOICE,CONTRACT,RECEIPT,REPORT
+    statuses:
+      pending: PENDING
+      processing: PROCESSING
+      completed: COMPLETED
+      error: ERROR
+  expiry:
+    cron: "0 0 7 * * ?"  # Every day at 7:00 AM
+
+# Communication Processing Config
+communication:
+  processing:
+    enabled: true
+    batch-size: 50
+    concurrency: 10
+    interval: 30000  # 30 seconds
+    statuses:
+      pending: PENDING
+      sending: SENDING
+      sent: SENT
+      delivered: DELIVERED
+      error: ERROR
+  delivery:
+    check:
+      interval: 300000  # 5 minutes

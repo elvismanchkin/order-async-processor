@@ -1,0 +1,22 @@
+{}"annotations": {
+"list": [
+{
+"builtIn": 1,
+"datasource": "-- Grafana --",
+"enable": true,
+"hide": true,
+"iconColor": "rgba(0, 211, 255, 1)",
+"name": "Annotations & Alerts",
+"type": "dashboard"
+},
+{
+"datasource": "Prometheus",
+"enable": true,
+"expr": "changes(data_generator_count[1m]) > 0",
+"iconColor": "rgba(255, 96, 96, 1)",
+"name": "Data Generation",
+"titleFormat": "Data Generated",
+"textFormat": "Batch of test data was generated"
+}
+]
+},

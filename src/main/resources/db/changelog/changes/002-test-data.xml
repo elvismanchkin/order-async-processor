@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="test-data-001" author="developer" context="test">
+        <comment>Insert test customers</comment>
+
+        <!-- Test Customers -->
+        <insert tableName="customers">
+            <column name="id" value="11111111-1111-1111-1111-111111111111"/>
+            <column name="external_id" value="EXT-1001"/>
+            <column name="tax_id" value="1234567890"/>
+            <column name="name" value="Test Customer 1"/>
+            <column name="email" value="customer1@example.com"/>
+            <column name="phone" value="+1234567890"/>
+            <column name="segment" value="REGULAR"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="customers">
+            <column name="id" value="22222222-2222-2222-2222-222222222222"/>
+            <column name="external_id" value="EXT-1002"/>
+            <column name="tax_id" value="0987654321"/>
+            <column name="name" value="Test Customer 2"/>
+            <column name="email" value="customer2@example.com"/>
+            <column name="phone" value="+0987654321"/>
+            <column name="segment" value="VIP"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+
+        <!-- Test Orders -->
+        <insert tableName="orders">
+            <column name="id" value="11111111-2222-3333-4444-555555555555"/>
+            <column name="reference_number" value="ORD-001"/>
+            <column name="type" value="STANDARD"/>
+            <column name="status" value="PENDING"/>
+            <column name="customer_id" value="11111111-1111-1111-1111-111111111111"/>
+            <column name="created_by" value="test-user"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="priority" valueNumeric="0"/>
+            <column name="description" value="Test order 1"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+
+        <insert tableName="orders">
+            <column name="id" value="22222222-3333-4444-5555-666666666666"/>
+            <column name="reference_number" value="ORD-002"/>
+            <column name="type" value="PRIORITY"/>
+            <column name="status" value="PENDING"/>
+            <column name="customer_id" value="22222222-2222-2222-2222-222222222222"/>
+            <column name="created_by" value="test-user"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="priority" valueNumeric="10"/>
+            <column name="description" value="Test order 2"/>
+            <column name="version" valueNumeric="0"/>
+            <column name="deleted" valueBoolean="false"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
