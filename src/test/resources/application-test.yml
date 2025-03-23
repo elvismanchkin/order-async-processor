@@ -13,6 +13,7 @@ spring:
   test:
     mockmvc:
       print: default
+liquibase:
 
 logging:
   level:

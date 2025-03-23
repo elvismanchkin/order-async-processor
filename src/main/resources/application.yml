@@ -19,6 +19,16 @@ spring:
         enabled: true
   reactor:
     context-propagation: auto
+  # JDBC configuration for Liquibase
+  datasource:
+    url: jdbc:postgresql://${spring.r2dbc.host}:${spring.r2dbc.port}/${spring.r2dbc.database}
+    username: ${spring.r2dbc.username}
+    password: ${spring.r2dbc.password}
+    driver-class-name: org.postgresql.Driver
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+    default-schema: public
 
 # Server configuration
 server:
