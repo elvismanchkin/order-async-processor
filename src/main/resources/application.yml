@@ -29,6 +29,11 @@ spring:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.xml
     default-schema: public
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${spring.r2dbc.host}:${spring.r2dbc.port}/${spring.r2dbc.database}
+    password: ${spring.r2dbc.password}
+    user: ${spring.r2dbc.username}
+    drop-first: true
 
 # Server configuration
 server:

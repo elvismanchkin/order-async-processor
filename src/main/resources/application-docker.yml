@@ -1,14 +1,15 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://postgres:5432/orders_db
+    url: jdbc:postgresql://postgres:5432/orders_db?currentSchema=public
     username: postgres
     password: postgres
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.xml
+    url: jdbc:postgresql://postgres:5432/orders_db
     default-schema: public
-    contexts: ${liquibase.contexts:}
+    contexts: ${liquibase.contexts:default}
   r2dbc:
     url: r2dbc:postgresql://postgres:5432/orders_db
     username: postgres

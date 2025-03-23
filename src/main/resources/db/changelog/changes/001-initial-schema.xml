@@ -40,17 +40,14 @@
 
         <createIndex indexName="idx_customers_external_id" tableName="customers">
             <column name="external_id"/>
-            <where>deleted = false</where>
         </createIndex>
 
         <createIndex indexName="idx_customers_tax_id" tableName="customers">
             <column name="tax_id"/>
-            <where>deleted = false</where>
         </createIndex>
 
         <createIndex indexName="idx_customers_status" tableName="customers">
             <column name="status"/>
-            <where>deleted = false</where>
         </createIndex>
     </changeSet>
 
@@ -96,34 +93,28 @@
 
         <createIndex indexName="idx_orders_status" tableName="orders">
             <column name="status"/>
-            <where>deleted = false</where>
         </createIndex>
 
         <createIndex indexName="idx_orders_customer_id" tableName="orders">
             <column name="customer_id"/>
-            <where>deleted = false</where>
         </createIndex>
 
         <createIndex indexName="idx_orders_created_at" tableName="orders">
             <column name="created_at"/>
-            <where>deleted = false</where>
         </createIndex>
 
         <createIndex indexName="idx_orders_due_date" tableName="orders">
             <column name="due_date"/>
-            <where>deleted = false</where>
         </createIndex>
 
         <createIndex indexName="idx_orders_type_status" tableName="orders">
             <column name="type"/>
             <column name="status"/>
-            <where>deleted = false</where>
         </createIndex>
 
         <createIndex indexName="idx_orders_priority_created" tableName="orders">
             <column name="priority" descending="true"/>
             <column name="created_at"/>
-            <where>deleted = false</where>
         </createIndex>
     </changeSet>
 

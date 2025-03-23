@@ -20,6 +20,7 @@ RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 FROM eclipse-temurin:21-jre-alpine
 VOLUME /tmp
 
+RUN apk add --no-cache postgresql-client
 # Add application user
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
