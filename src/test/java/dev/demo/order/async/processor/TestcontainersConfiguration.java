@@ -12,8 +12,9 @@ import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@TestConfiguration(proxyBeanMethods = false)
-class TestcontainersConfiguration {
+@TestConfiguration
+public class TestcontainersConfiguration {
+
 	@Bean
 	@Primary
 	public ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory) {
@@ -27,10 +28,13 @@ class TestcontainersConfiguration {
 
 		return initializer;
 	}
+
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer<?> postgresContainer() {
-		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"));
+		return new PostgreSQLContainer<>(DockerImageName.parse("postgres:latest"))
+				.withDatabaseName("testdb")
+				.withUsername("test")
+				.withPassword("test");
 	}
-
 }

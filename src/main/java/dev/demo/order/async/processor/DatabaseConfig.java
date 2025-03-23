@@ -15,15 +15,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
-import org.springframework.r2dbc.connection.R2dbcTransactionManager;
-import org.springframework.transaction.ReactiveTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.time.Duration;
 
 @Configuration
 @EnableR2dbcRepositories(basePackages = "dev.demo.order.async.processor.repository")
-@EnableTransactionManagement
 public class DatabaseConfig extends AbstractR2dbcConfiguration {
 
     @Value("${spring.r2dbc.host}")
@@ -105,8 +101,5 @@ public class DatabaseConfig extends AbstractR2dbcConfiguration {
         return new R2dbcEntityTemplate(connectionFactory);
     }
 
-    @Bean
-    public ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory) {
-        return new R2dbcTransactionManager(connectionFactory);
-    }
+    // Removed transactionManager bean - now provided by TransactionManagerConfiguration
 }

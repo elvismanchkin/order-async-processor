@@ -1,0 +1,21 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+  r2dbc:
+    url: r2dbc:tc:postgresql:///testdb?TC_IMAGE_TAG=15-alpine
+    username: test
+    password: test
+
+  liquibase:
+    enabled: false
+
+  test:
+    mockmvc:
+      print: default
+
+logging:
+  level:
+    dev.demo.order.async.processor: DEBUG
+    org.springframework.r2dbc: INFO
+    io.r2dbc: INFO
