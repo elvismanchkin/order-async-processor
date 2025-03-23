@@ -1,5 +1,6 @@
 package dev.demo.order.async.processor;
 
+import dev.demo.order.async.processor.converter.JsonbConverter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.r2dbc.pool.ConnectionPool;
@@ -17,6 +18,7 @@ import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
 import java.time.Duration;
+import java.util.List;
 
 @Configuration
 @EnableR2dbcRepositories(basePackages = "dev.demo.order.async.processor.repository")
@@ -101,5 +103,11 @@ public class DatabaseConfig extends AbstractR2dbcConfiguration {
         return new R2dbcEntityTemplate(connectionFactory);
     }
 
-    // Removed transactionManager bean - now provided by TransactionManagerConfiguration
+    @Override
+    protected List<Object> getCustomConverters() {
+        return List.of(
+                new JsonbConverter.StringToJsonConverter(),
+                new JsonbConverter.JsonToStringConverter()
+        );
+    }
 }

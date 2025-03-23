@@ -41,6 +41,11 @@
 			<artifactId>r2dbc-postgresql</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+		</dependency>
+
 		<!-- Liquibase for database migrations -->
 		<dependency>
 			<groupId>org.liquibase</groupId>
