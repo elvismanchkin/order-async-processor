@@ -8,11 +8,73 @@ mkdir -p prometheus grafana/provisioning/datasources grafana/provisioning/dashbo
 [ ! -f grafana/provisioning/datasources/datasource.yml ] && echo "Creating Grafana datasource..." && cp -n grafana-datasource.yml grafana/provisioning/datasources/datasource.yml
 [ ! -f grafana/provisioning/dashboards/dashboards.yml ] && echo "Creating Grafana dashboard provisioning..." && cp -n grafana-dashboard-provision.yml grafana/provisioning/dashboards/dashboards.yml
 [ ! -f grafana/dashboards/order-processor-dashboard.json ] && echo "Creating Grafana dashboard..." && cp -n metrics-dashboard.json grafana/dashboards/order-processor-dashboard.json
-[ ! -f wiremock/mappings/external-service.json ] && echo "Creating WireMock mappings..." && cp -n wiremock-mappings.json wiremock/mappings/external-service.json
+
+# Fix WireMock mappings format
+echo "Updating WireMock mappings..."
+cat > wiremock/mappings/external-service.json << 'EOF'
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/orders/validate"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {"valid": true},
+        "transformers": [
+          "response-template"
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/orders/process"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "bodyFileName": "order-response.json",
+        "transformers": [
+          "response-template"
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/orders/notify"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "notificationId": "{{randomValue type='UUID'}}",
+          "status": "SENT",
+          "message": "Notification sent successfully"
+        },
+        "transformers": [
+          "response-template"
+        ]
+      }
+    }
+  ]
+}
+EOF
+
 [ ! -f wiremock/__files/order-response.json ] && echo "Creating WireMock responses..." && cp -n wiremock-response.json wiremock/__files/order-response.json
 
 # Start the services
 echo "Starting services with Docker Compose..."
+docker-compose down -v # Clean up existing volumes to ensure fresh database
 docker-compose up -d
 
 echo "Services are starting. You can access:"

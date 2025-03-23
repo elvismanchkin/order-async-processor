@@ -1,28 +1,15 @@
 spring:
-  r2dbc:
-    host: postgres
-    port: 5432
-    database: orders_db
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/orders_db
     username: postgres
     password: postgres
-    pool:
-      initial-size: 50
-      max-size: 200
-      max-idle-time: 30m
-      validation-query: SELECT 1
-
-service:
-  external:
-    url: http://external-service:8081
-
-logging:
-  level:
-    com.example.orderprocessor: INFO
-    reactor.netty.http.client: INFO
-
-# Optimized settings for containerized environment
-order:
-  processing:
-    batch-size: 500
-    concurrency: 50
-    interval: 30000  # 30 seconds
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+    default-schema: public
+    contexts: ${liquibase.contexts:}
+  r2dbc:
+    url: r2dbc:postgresql://postgres:5432/orders_db
+    username: postgres
+    password: postgres
