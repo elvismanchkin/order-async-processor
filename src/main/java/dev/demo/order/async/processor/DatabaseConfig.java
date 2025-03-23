@@ -1,10 +1,13 @@
 package dev.demo.order.async.processor;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import io.r2dbc.pool.ConnectionPool;
 import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.time.Duration;
 
+@RequiredArgsConstructor
 @Configuration
 @EnableR2dbcRepositories(basePackages = "dev.demo.order.async.processor.repository")
 @EnableTransactionManagement
@@ -50,6 +54,12 @@ public class DatabaseConfig extends AbstractR2dbcConfiguration {
     @Value("${spring.r2dbc.pool.validation-query:SELECT 1}")
     private String validationQuery;
 
+    @Value("${spring.r2dbc.pool.acquire-retry:3}")
+    private int acquireRetry;
+
+    private final MeterRegistry meterRegistry;
+
+    // Constructor with MeterRegistry parameter
     @Bean
     public PostgresqlConnectionFactory postgresqlConnectionFactory() {
         return new PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()
@@ -59,6 +69,9 @@ public class DatabaseConfig extends AbstractR2dbcConfiguration {
                 .username(username)
                 .password(password)
                 .schema("public")
+                .connectTimeout(Duration.ofSeconds(5))
+                .tcpKeepAlive(true)
+                .tcpNoDelay(true)
                 .build());
     }
 
@@ -70,7 +83,15 @@ public class DatabaseConfig extends AbstractR2dbcConfiguration {
                 .initialSize(initialSize)
                 .maxSize(maxSize)
                 .maxIdleTime(maxIdleTime)
+                .acquireRetry(acquireRetry)
+                .maxAcquireTime(Duration.ofSeconds(10))
                 .validationQuery(validationQuery)
+                // Register a custom metrics reporter
+                .metricsRecorder(new MicrometerPoolMetricsRecorder(
+                        meterRegistry,
+                        "r2dbc.pool",
+                        Tags.of("db", "postgres")
+                ))
                 .build();
 
         return new ConnectionPool(configuration);
