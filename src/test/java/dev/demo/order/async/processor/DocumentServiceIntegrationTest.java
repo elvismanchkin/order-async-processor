@@ -6,6 +6,7 @@ import dev.demo.order.async.processor.service.DocumentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Flux;
@@ -31,7 +32,7 @@ public class DocumentServiceIntegrationTest {
     @Autowired
     private DocumentService documentService;
 
-    @MockitoBean
+    @MockBean
     private OrderDocumentRepository documentRepository;
 
     @Test

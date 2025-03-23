@@ -188,8 +188,11 @@ class OrderRepositoryIntegrationTest {
         LocalDateTime updateTime = LocalDateTime.now();
         String updatedBy = "test-updater";
 
-        StepVerifier.create(orderRepository.updateOrderStatus(savedOrder.getId(), "COMPLETED", updatedBy, updateTime))
-                .expectNext(1)
+        // First run the update operation
+        orderRepository.updateOrderStatus(savedOrder.getId(), "COMPLETED", updatedBy, updateTime)
+                .block();
+        StepVerifier.create(orderRepository.findById(savedOrder.getId()))
+                .expectNextMatches(o -> "COMPLETED".equals(o.getStatus()) && updatedBy.equals(o.getUpdatedBy()))
                 .verifyComplete();
 
         StepVerifier.create(orderRepository.findById(savedOrder.getId()))
@@ -268,8 +271,11 @@ class OrderRepositoryIntegrationTest {
         LocalDateTime updateTime = LocalDateTime.now();
         String updatedBy = "test-deleter";
 
-        StepVerifier.create(orderRepository.softDeleteOrder(savedOrder.getId(), updatedBy, updateTime))
-                .expectNext(1)
+        // First run the soft delete operation
+        orderRepository.softDeleteOrder(savedOrder.getId(), updatedBy, updateTime)
+                .block();
+        StepVerifier.create(orderRepository.findById(savedOrder.getId()))
+                .expectNextMatches(o -> o.isDeleted() && updatedBy.equals(o.getUpdatedBy()))
                 .verifyComplete();
 
         // Verify that the order is marked as deleted
