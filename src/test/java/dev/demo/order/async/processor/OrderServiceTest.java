@@ -1,67 +1,71 @@
 package dev.demo.order.async.processor;
 
+import dev.demo.order.async.processor.repository.OrderActionRepository;
 import dev.demo.order.async.processor.repository.OrderRepository;
 import dev.demo.order.async.processor.repository.model.Order;
 import dev.demo.order.async.processor.service.OrderService;
 import dev.demo.order.async.processor.service.OrderServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private OrderActionRepository actionRepository;
+
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderServiceImpl(orderRepository);
+        MockitoAnnotations.openMocks(this);
+        orderService = new OrderServiceImpl(orderRepository, actionRepository);
 
-        // Set properties using reflection
         ReflectionTestUtils.setField(orderService, "pendingStatus", "PENDING");
         ReflectionTestUtils.setField(orderService, "processingStatus", "PROCESSING");
         ReflectionTestUtils.setField(orderService, "completedStatus", "COMPLETED");
         ReflectionTestUtils.setField(orderService, "errorStatus", "ERROR");
-        ReflectionTestUtils.setField(orderService, "maxAge", java.time.Duration.ofHours(24));
+        ReflectionTestUtils.setField(orderService, "maxAge", Duration.ofHours(24));
+
+        when(actionRepository.save(any())).thenReturn(Mono.empty());
     }
 
     @Test
     void findOrdersToProcess_ShouldReturnOrders() {
-        // Arrange
         Order order1 = new Order();
-        order1.setOrderId("order-1");
+        order1.setId(UUID.randomUUID());
         order1.setStatus("PENDING");
 
         Order order2 = new Order();
-        order2.setOrderId("order-2");
+        order2.setId(UUID.randomUUID());
         order2.setStatus("PENDING");
 
         when(orderRepository.findOrdersToProcess(
-                eq(List.of("PENDING")),
+                any(List.class),
                 any(LocalDateTime.class),
                 anyInt(),
                 anyLong()))
                 .thenReturn(Flux.just(order1, order2));
 
-        // Act & Assert
         StepVerifier.create(orderService.findOrdersToProcess(10))
                 .expectNext(order1)
                 .expectNext(order2)
@@ -70,20 +74,18 @@ class OrderServiceTest {
 
     @Test
     void findOrdersToProcessByTypes_ShouldReturnOrdersOfSpecifiedTypes() {
-        // Arrange
         Order order1 = new Order();
-        order1.setOrderId("order-1");
+        order1.setId(UUID.randomUUID());
         order1.setStatus("PENDING");
         order1.setType("STANDARD");
 
         when(orderRepository.findOrdersToProcessByTypes(
-                eq(List.of("PENDING")),
+                any(List.class),
                 any(LocalDateTime.class),
-                eq(List.of("STANDARD", "PRIORITY")),
+                any(List.class),
                 anyInt()))
                 .thenReturn(Flux.just(order1));
 
-        // Act & Assert
         StepVerifier.create(orderService.findOrdersToProcessByTypes(List.of("STANDARD", "PRIORITY"), 10))
                 .expectNext(order1)
                 .verifyComplete();
@@ -91,20 +93,91 @@ class OrderServiceTest {
 
     @Test
     void updateOrderStatus_ShouldUpdateAndReturnOrder() {
-        // Arrange
+        UUID orderId = UUID.randomUUID();
         Order order = new Order();
-        order.setOrderId("order-1");
+        order.setId(orderId);
         order.setStatus("COMPLETED");
 
-        when(orderRepository.updateOrderStatus(eq("order-1"), eq("COMPLETED"), any(LocalDateTime.class)))
+        when(orderRepository.updateOrderStatus(
+                any(UUID.class),
+                anyString(),
+                anyString(),
+                any(LocalDateTime.class)))
                 .thenReturn(Mono.just(1));
 
-        when(orderRepository.findById("order-1"))
+        when(orderRepository.findById(any(UUID.class)))
                 .thenReturn(Mono.just(order));
 
-        // Act & Assert
-        StepVerifier.create(orderService.updateOrderStatus("order-1", "COMPLETED"))
+        StepVerifier.create(orderService.updateOrderStatus(orderId, "COMPLETED", "test-user"))
                 .expectNext(order)
+                .verifyComplete();
+    }
+
+    @Test
+    void getOrderById_ShouldReturnOrder() {
+        UUID orderId = UUID.randomUUID();
+        Order order = new Order();
+        order.setId(orderId);
+        order.setStatus("PENDING");
+
+        when(orderRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(order));
+
+        StepVerifier.create(orderService.getOrderById(orderId))
+                .expectNext(order)
+                .verifyComplete();
+    }
+
+    @Test
+    void createOrder_ShouldReturnCreatedOrder() {
+        Order input = new Order();
+        input.setStatus("PENDING");
+
+        Order savedOrder = new Order();
+        savedOrder.setId(UUID.randomUUID());
+        savedOrder.setStatus("PENDING");
+
+        when(orderRepository.save(any(Order.class)))
+                .thenReturn(Mono.just(savedOrder));
+
+        StepVerifier.create(orderService.createOrder(input))
+                .expectNext(savedOrder)
+                .verifyComplete();
+    }
+
+    @Test
+    void deleteOrder_ShouldReturnTrue() {
+        UUID orderId = UUID.randomUUID();
+        String deletedBy = "test-user";
+
+        when(orderRepository.softDeleteOrder(
+                any(UUID.class),
+                anyString(),
+                any(LocalDateTime.class)))
+                .thenReturn(Mono.just(1));
+
+        StepVerifier.create(orderService.deleteOrder(orderId, deletedBy))
+                .expectNext(true)
+                .verifyComplete();
+    }
+
+    @Test
+    void findOrdersByCustomer_ShouldReturnCustomerOrders() {
+        UUID customerId = UUID.randomUUID();
+        Order order1 = new Order();
+        order1.setId(UUID.randomUUID());
+        order1.setCustomerId(customerId);
+
+        Order order2 = new Order();
+        order2.setId(UUID.randomUUID());
+        order2.setCustomerId(customerId);
+
+        when(orderRepository.findByCustomerIdAndDeletedFalse(any(UUID.class)))
+                .thenReturn(Flux.just(order1, order2));
+
+        StepVerifier.create(orderService.findOrdersByCustomer(customerId))
+                .expectNext(order1)
+                .expectNext(order2)
                 .verifyComplete();
     }
 }

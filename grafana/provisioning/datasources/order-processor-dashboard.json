@@ -1,22 +1,308 @@
-{}"annotations": {
-"list": [
 {
-"builtIn": 1,
-"datasource": "-- Grafana --",
-"enable": true,
-"hide": true,
-"iconColor": "rgba(0, 211, 255, 1)",
-"name": "Annotations & Alerts",
-"type": "dashboard"
-},
-{
-"datasource": "Prometheus",
-"enable": true,
-"expr": "changes(data_generator_count[1m]) > 0",
-"iconColor": "rgba(255, 96, 96, 1)",
-"name": "Data Generation",
-"titleFormat": "Data Generated",
-"textFormat": "Batch of test data was generated"
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": "-- Grafana --",
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            },
+            {
+                "datasource": "Prometheus",
+                "enable": true,
+                "expr": "changes(data_generator_count[1m]) > 0",
+                "iconColor": "rgba(255, 96, 96, 1)",
+                "name": "Data Generation",
+                "titleFormat": "Data Generated",
+                "textFormat": "Batch of test data was generated"
+            }
+        ]
+    },
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 0,
+    "id": 1,
+    "links": [],
+    "panels": [
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": true,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 0
+            },
+            "id": 2,
+            "options": {
+                "legend": {
+                    "calcs": [
+                        "mean",
+                        "lastNotNull",
+                        "max"
+                    ],
+                    "displayMode": "table",
+                    "placement": "bottom"
+                },
+                "tooltip": {
+                    "mode": "single"
+                }
+            },
+            "pluginVersion": "8.0.6",
+            "targets": [
+                {
+                    "exemplar": true,
+                    "expr": "sum(rate(order_processing_count[5m])) by (status)",
+                    "interval": "",
+                    "legendFormat": "{{status}}",
+                    "refId": "A"
+                }
+            ],
+            "title": "Order Processing Rate",
+            "type": "timeseries"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 10,
+                        "gradientMode": "none",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "lineInterpolation": "linear",
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": true,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 40
+            },
+            "id": 24,
+            "options": {
+                "legend": {
+                    "calcs": [
+                        "mean",
+                        "lastNotNull",
+                        "max"
+                    ],
+                    "displayMode": "table",
+                    "placement": "bottom"
+                },
+                "tooltip": {
+                    "mode": "single"
+                }
+            },
+            "pluginVersion": "8.0.6",
+            "targets": [
+                {
+                    "exemplar": true,
+                    "expr": "sum(increase(data_generator_customer_total[1m]))",
+                    "interval": "",
+                    "legendFormat": "Customers",
+                    "refId": "A"
+                },
+                {
+                    "exemplar": true,
+                    "expr": "sum(increase(data_generator_order_total[1m]))",
+                    "interval": "",
+                    "legendFormat": "Orders",
+                    "refId": "B"
+                },
+                {
+                    "exemplar": true,
+                    "expr": "sum(increase(data_generator_document_total[1m]))",
+                    "interval": "",
+                    "legendFormat": "Documents",
+                    "refId": "C"
+                },
+                {
+                    "exemplar": true,
+                    "expr": "sum(increase(data_generator_communication_total[1m]))",
+                    "interval": "",
+                    "legendFormat": "Communications",
+                    "refId": "D"
+                }
+            ],
+            "title": "Data Generation Rate (1m)",
+            "type": "timeseries"
+        },
+        {
+            "datasource": null,
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 40
+            },
+            "id": 26,
+            "options": {
+                "displayMode": "gradient",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showUnfilled": true,
+                "text": {}
+            },
+            "pluginVersion": "8.0.6",
+            "targets": [
+                {
+                    "exemplar": true,
+                    "expr": "sum(data_generator_customer_total) by (instance)",
+                    "interval": "",
+                    "legendFormat": "Customers",
+                    "refId": "A"
+                },
+                {
+                    "exemplar": true,
+                    "expr": "sum(data_generator_order_total) by (instance)",
+                    "interval": "",
+                    "legendFormat": "Orders",
+                    "refId": "B"
+                },
+                {
+                    "exemplar": true,
+                    "expr": "sum(data_generator_document_total) by (instance)",
+                    "interval": "",
+                    "legendFormat": "Documents",
+                    "refId": "C"
+                },
+                {
+                    "exemplar": true,
+                    "expr": "sum(data_generator_communication_total) by (instance)",
+                    "interval": "",
+                    "legendFormat": "Communications",
+                    "refId": "D"
+                }
+            ],
+            "title": "Total Generated Data",
+            "type": "bargauge"
+        }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 30,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+        "list": []
+    },
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Order Processor Dashboard",
+    "uid": "order-processor",
+    "version": 1
 }
-]
-},

@@ -3,18 +3,19 @@ package dev.demo.order.async.processor;
 import dev.demo.order.async.processor.repository.OrderDocumentRepository;
 import dev.demo.order.async.processor.repository.OrderRepository;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import jakarta.annotation.PostConstruct;
-import reactor.core.publisher.Mono;
-
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,6 +39,9 @@ public class MetricsConfiguration {
     private Counter orderErrorCounter;
     private Timer orderProcessingTimer;
 
+    // Map to store atomic integers for each status
+    private final ConcurrentMap<String, AtomicInteger> gauges = new ConcurrentHashMap<>();
+
     @PostConstruct
     public void init() {
         // Register metrics
@@ -56,27 +60,22 @@ public class MetricsConfiguration {
                 .register(meterRegistry);
 
         // Register custom gauges for order counts
-        meterRegistry.gauge("order.count",
-                Tags.of("status", "PENDING"),
-                new AtomicInteger(0),
-                AtomicInteger::get);
-
-        meterRegistry.gauge("order.count",
-                Tags.of("status", "PROCESSING"),
-                new AtomicInteger(0),
-                AtomicInteger::get);
-
-        meterRegistry.gauge("order.count",
-                Tags.of("status", "COMPLETED"),
-                new AtomicInteger(0),
-                AtomicInteger::get);
-
-        meterRegistry.gauge("order.count",
-                Tags.of("status", "ERROR"),
-                new AtomicInteger(0),
-                AtomicInteger::get);
+        registerOrderCountGauge("PENDING");
+        registerOrderCountGauge("PROCESSING");
+        registerOrderCountGauge("COMPLETED");
+        registerOrderCountGauge("ERROR");
 
         log.info("Custom metrics registered");
+    }
+
+    private void registerOrderCountGauge(String status) {
+        AtomicInteger gauge = new AtomicInteger(0);
+        gauges.put(status, gauge);
+
+        Gauge.builder("order.count", gauge, AtomicInteger::get)
+                .tags(Tags.of("status", status))
+                .description("Number of orders with status " + status)
+                .register(meterRegistry);
     }
 
     /**
@@ -128,10 +127,7 @@ public class MetricsConfiguration {
     private void updateOrderCountGauge(String status) {
         orderRepository.countByStatus(status)
                 .doOnNext(count -> {
-                    AtomicInteger gauge = meterRegistry.find("order.count")
-                            .tags("status", status)
-                            .gauge();
-
+                    AtomicInteger gauge = gauges.get(status);
                     if (gauge != null) {
                         gauge.set(count.intValue());
                     }

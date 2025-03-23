@@ -7,7 +7,7 @@ import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.time.Duration;
 
-@RequiredArgsConstructor
 @Configuration
 @EnableR2dbcRepositories(basePackages = "dev.demo.order.async.processor.repository")
 @EnableTransactionManagement
@@ -59,7 +58,11 @@ public class DatabaseConfig extends AbstractR2dbcConfiguration {
 
     private final MeterRegistry meterRegistry;
 
-    // Constructor with MeterRegistry parameter
+    @Autowired
+    public DatabaseConfig(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+    }
+
     @Bean
     public PostgresqlConnectionFactory postgresqlConnectionFactory() {
         return new PostgresqlConnectionFactory(PostgresqlConnectionConfiguration.builder()

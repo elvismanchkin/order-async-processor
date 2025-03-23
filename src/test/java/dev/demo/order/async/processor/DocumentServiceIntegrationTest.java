@@ -50,7 +50,7 @@ public class DocumentServiceIntegrationTest {
         doc2.setStatus("PENDING");
 
         List<String> types = Arrays.asList("INVOICE", "CONTRACT");
-        List<String> statuses = Arrays.asList("PENDING");
+        List<String> statuses = List.of("PENDING");
 
         when(documentRepository.findDocumentsForProcessing(eq(types), eq(statuses), anyInt()))
                 .thenReturn(Flux.just(doc1, doc2));
