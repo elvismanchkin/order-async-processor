@@ -3,36 +3,48 @@ package dev.demo.order.async.processor;
 import dev.demo.order.async.processor.repository.OrderDocumentRepository;
 import dev.demo.order.async.processor.repository.model.OrderDocument;
 import dev.demo.order.async.processor.service.DocumentService;
+import dev.demo.order.async.processor.service.DocumentServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
+@ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 public class DocumentServiceIntegrationTest {
 
-    @Autowired
+    @Mock
+    private OrderDocumentRepository documentRepository;
+
     private DocumentService documentService;
 
-    @MockitoBean
-    private OrderDocumentRepository documentRepository;
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        documentService = new DocumentServiceImpl(documentRepository);
+
+        // Set the necessary fields using reflection
+        org.springframework.test.util.ReflectionTestUtils.setField(documentService, "pendingStatus", "PENDING");
+        org.springframework.test.util.ReflectionTestUtils.setField(documentService, "processingStatus", "PROCESSING");
+        org.springframework.test.util.ReflectionTestUtils.setField(documentService, "completedStatus", "COMPLETED");
+        org.springframework.test.util.ReflectionTestUtils.setField(documentService, "errorStatus", "ERROR");
+    }
 
     @Test
     void findDocumentsForProcessing_ShouldReturnMatchingDocuments() {
@@ -95,19 +107,30 @@ public class DocumentServiceIntegrationTest {
         document.setStatus("PENDING");
         document.setAmount(new BigDecimal("100.00"));
 
-        OrderDocument processedDocument = new OrderDocument();
-        processedDocument.setId(docId);
-        processedDocument.setOrderId(document.getOrderId());
-        processedDocument.setType("INVOICE");
-        processedDocument.setStatus("COMPLETED");
-        processedDocument.setAmount(new BigDecimal("100.00"));
+        OrderDocument processingDocument = new OrderDocument();
+        processingDocument.setId(docId);
+        processingDocument.setOrderId(document.getOrderId());
+        processingDocument.setType("INVOICE");
+        processingDocument.setStatus("PROCESSING");
+        processingDocument.setAmount(new BigDecimal("100.00"));
 
-        when(documentRepository.updateDocumentStatus(eq(docId), anyString()))
+        OrderDocument completedDocument = new OrderDocument();
+        completedDocument.setId(docId);
+        completedDocument.setOrderId(document.getOrderId());
+        completedDocument.setType("INVOICE");
+        completedDocument.setStatus("COMPLETED");
+        completedDocument.setAmount(new BigDecimal("100.00"));
+
+        // Mock the status updates
+        when(documentRepository.updateDocumentStatus(eq(docId), eq("PROCESSING")))
+                .thenReturn(Mono.just(1));
+        when(documentRepository.updateDocumentStatus(eq(docId), eq("COMPLETED")))
                 .thenReturn(Mono.just(1));
 
+        // Mock the findById sequence with a clearer pattern
         when(documentRepository.findById(docId))
-                .thenReturn(Mono.just(document))
-                .thenReturn(Mono.just(processedDocument));
+                .thenReturn(Mono.just(processingDocument))  // First call returns PROCESSING state
+                .thenReturn(Mono.just(completedDocument));  // Second call returns COMPLETED state
 
         // Act & Assert
         StepVerifier.create(documentService.processDocument(document))
@@ -136,7 +159,8 @@ public class DocumentServiceIntegrationTest {
                 .expectNextMatches(doc ->
                         doc.getId() != null &&
                                 doc.getUploadedAt() != null &&
-                                doc.getStatus() != null)
+                                doc.getStatus() != null &&
+                                "PENDING".equals(doc.getStatus()))
                 .verifyComplete();
     }
 }
