@@ -4,6 +4,7 @@ import dev.demo.order.async.processor.repository.OrderRepository;
 import dev.demo.order.async.processor.repository.model.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -11,6 +12,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
+import org.springframework.core.io.ClassPathResource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -41,10 +43,34 @@ class OrderRepositoryIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private DatabaseClient databaseClient;
+
     @BeforeEach
     void setUp() {
-        // Clean up any existing data
-        orderRepository.deleteAll().block();
+        // First create schema if it doesn't exist
+        databaseClient.sql("""
+            CREATE TABLE IF NOT EXISTS orders (
+                id UUID PRIMARY KEY,
+                reference_number VARCHAR(50) NOT NULL,
+                type VARCHAR(30) NOT NULL,
+                status VARCHAR(30) NOT NULL,
+                customer_id UUID NOT NULL,
+                created_by VARCHAR(100) NOT NULL,
+                created_at TIMESTAMP NOT NULL,
+                updated_by VARCHAR(100),
+                updated_at TIMESTAMP,
+                priority INTEGER NOT NULL DEFAULT 0,
+                due_date TIMESTAMP,
+                description TEXT,
+                metadata JSONB,
+                version BIGINT NOT NULL DEFAULT 0,
+                deleted BOOLEAN NOT NULL DEFAULT FALSE
+            )
+        """).then().block();
+
+        // Now it's safe to delete any existing data
+        databaseClient.sql("DELETE FROM orders").then().block();
     }
 
     @Test
